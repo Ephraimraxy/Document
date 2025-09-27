@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { firebaseAdmin } from "../services/firebase-admin";
+import { storage } from "../storage";
 
 interface AuthenticatedRequest extends Request {
   user?: {
@@ -20,15 +21,21 @@ export async function auth(req: AuthenticatedRequest, res: Response, next: NextF
     const idToken = authHeader.split("Bearer ")[1];
     const decodedToken = await firebaseAdmin.verifyIdToken(idToken);
 
-    // Fetch user profile from Firestore
-    const userDoc = await firebaseAdmin.firestore
-      .collection("users")
-      .doc(decodedToken.uid)
-      .get();
-
-    let userProfile = null;
-    if (userDoc.exists) {
-      userProfile = userDoc.data();
+    // Fetch user profile from PostgreSQL database
+    let userProfile = await storage.getUser(decodedToken.uid);
+    
+    // If user doesn't exist in our database, create them from Firebase token
+    if (!userProfile && decodedToken.email) {
+      try {
+        userProfile = await storage.createUser({
+          email: decodedToken.email,
+          name: decodedToken.name || decodedToken.email.split('@')[0],
+          departmentId: "admin", // Default to admin department, can be changed later
+          role: "user"
+        });
+      } catch (error) {
+        console.error("Error creating user profile:", error);
+      }
     }
 
     req.user = {

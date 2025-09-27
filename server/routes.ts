@@ -6,11 +6,7 @@ import { storage } from "./storage";
 import { onlyOfficeService } from "./services/onlyoffice";
 import { insertDocumentSchema } from "@shared/schema";
 
-// Simple auth middleware for MVP
-const simpleAuth = (req: any, res: any, next: any) => {
-  req.user = { uid: "test-user", email: "test@example.com", name: "Test User", departmentId: "admin" };
-  next();
-};
+import { auth } from "./middleware/auth";
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -33,8 +29,27 @@ const upload = multer({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // User profile route
+  app.get("/api/profile", auth, async (req: any, res: any) => {
+    try {
+      if (!req.user?.uid) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+
+      const userProfile = await storage.getUser(req.user.uid);
+      if (!userProfile) {
+        return res.status(404).json({ message: "User profile not found" });
+      }
+
+      res.json(userProfile);
+    } catch (error: any) {
+      console.error("Error fetching user profile:", error);
+      res.status(500).json({ message: error.message });
+    }
+  });
+
   // Document CRUD routes
-  app.post("/api/documents", simpleAuth, upload.single("file"), async (req: any, res: any) => {
+  app.post("/api/documents", auth, upload.single("file"), async (req: any, res: any) => {
     try {
       if (!req.file) {
         return res.status(400).json({ message: "No file uploaded" });
@@ -84,7 +99,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/documents/sent/:userId", simpleAuth, async (req: any, res: any) => {
+  app.get("/api/documents/sent/:userId", auth, async (req: any, res: any) => {
     try {
       const { userId } = req.params;
       if (req.user?.uid !== userId) {
@@ -98,7 +113,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/documents/received/:departmentId", simpleAuth, async (req: any, res: any) => {
+  app.get("/api/documents/received/:departmentId", auth, async (req: any, res: any) => {
     try {
       const { departmentId } = req.params;
       const documents = await storage.getDocumentsByDepartment(departmentId);
@@ -108,7 +123,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/documents/:id", simpleAuth, async (req: any, res: any) => {
+  app.get("/api/documents/:id", auth, async (req: any, res: any) => {
     try {
       const { id } = req.params;
       const document = await storage.getDocument(id);
@@ -132,7 +147,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // OnlyOffice integration routes
-  app.get("/api/onlyoffice/config/:id", simpleAuth, async (req: any, res: any) => {
+  app.get("/api/onlyoffice/config/:id", auth, async (req: any, res: any) => {
     try {
       const { id } = req.params;
       const document = await storage.getDocument(id);
@@ -208,7 +223,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Notifications routes
-  app.get("/api/notifications/:departmentId", simpleAuth, async (req: any, res: any) => {
+  app.get("/api/notifications/:departmentId", auth, async (req: any, res: any) => {
     try {
       const { departmentId } = req.params;
       const notifications = await storage.getNotificationsByDepartment(departmentId);
@@ -218,7 +233,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch("/api/notifications/:id/read", simpleAuth, async (req: any, res: any) => {
+  app.patch("/api/notifications/:id/read", auth, async (req: any, res: any) => {
     try {
       const { id } = req.params;
       await storage.markNotificationAsRead(id);

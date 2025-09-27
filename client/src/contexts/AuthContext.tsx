@@ -1,7 +1,6 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { User, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "firebase/auth";
-import { doc, getDoc } from "firebase/firestore";
-import { auth, db } from "@/lib/firebase";
+import { auth } from "@/lib/firebase";
 import type { User as AppUser } from "@shared/schema";
 
 interface AuthContextType {
@@ -25,9 +24,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       if (user) {
         try {
-          const userDoc = await getDoc(doc(db, "users", user.uid));
-          if (userDoc.exists()) {
-            setUserProfile(userDoc.data() as AppUser);
+          // Get user profile from our PostgreSQL backend instead of Firestore
+          const token = await user.getIdToken();
+          const response = await fetch('/api/profile', {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
+          });
+          
+          if (response.ok) {
+            const userProfile = await response.json();
+            setUserProfile(userProfile);
+          } else {
+            console.error("Failed to fetch user profile from backend");
           }
         } catch (error) {
           console.error("Error fetching user profile:", error);

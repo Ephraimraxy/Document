@@ -8,6 +8,10 @@ import type {
   Department,
   InsertDepartment 
 } from "@shared/schema";
+import { users, departments, documents, notifications } from "@shared/schema";
+import { neon } from "@neondatabase/serverless";
+import { drizzle } from "drizzle-orm/neon-http";
+import { eq, desc } from "drizzle-orm";
 import { randomUUID } from "crypto";
 
 export interface IStorage {
@@ -105,7 +109,11 @@ export class MemStorage implements IStorage {
 
   async createDepartment(insertDepartment: InsertDepartment): Promise<Department> {
     const id = randomUUID();
-    const department: Department = { ...insertDepartment, id };
+    const department: Department = { 
+      ...insertDepartment, 
+      id,
+      description: insertDepartment.description || null
+    };
     this.departments.set(id, department);
     return department;
   }
@@ -121,6 +129,8 @@ export class MemStorage implements IStorage {
     const document: Document = { 
       ...insertDocument, 
       id,
+      description: insertDocument.description || null,
+      dueDate: insertDocument.dueDate || null,
       status: "pending",
       createdAt: now,
       updatedAt: now,
@@ -164,6 +174,7 @@ export class MemStorage implements IStorage {
     const notification: Notification = { 
       ...insertNotification, 
       id,
+      documentId: insertNotification.documentId || null,
       read: false,
       createdAt: new Date(),
     };
@@ -186,4 +197,151 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+// PostgreSQL Storage Implementation
+export class PostgresStorage implements IStorage {
+  private db;
+
+  constructor() {
+    const sql = neon(process.env.DATABASE_URL!);
+    this.db = drizzle(sql);
+  }
+
+  // Users
+  async getUser(id: string): Promise<User | undefined> {
+    const result = await this.db.select().from(users).where(eq(users.id, id));
+    return result[0];
+  }
+
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    const result = await this.db.select().from(users).where(eq(users.email, email));
+    return result[0];
+  }
+
+  async createUser(insertUser: InsertUser): Promise<User> {
+    const id = randomUUID();
+    const newUser = {
+      ...insertUser,
+      id,
+      role: insertUser.role || "user",
+    };
+    
+    const result = await this.db.insert(users).values(newUser).returning();
+    return result[0];
+  }
+
+  async updateUser(id: string, updates: Partial<User>): Promise<User | undefined> {
+    const result = await this.db
+      .update(users)
+      .set(updates)
+      .where(eq(users.id, id))
+      .returning();
+    return result[0];
+  }
+
+  // Departments
+  async getDepartment(id: string): Promise<Department | undefined> {
+    const result = await this.db.select().from(departments).where(eq(departments.id, id));
+    return result[0];
+  }
+
+  async getAllDepartments(): Promise<Department[]> {
+    return await this.db.select().from(departments);
+  }
+
+  async createDepartment(insertDepartment: InsertDepartment): Promise<Department> {
+    const id = randomUUID();
+    const newDepartment = {
+      ...insertDepartment,
+      id,
+      description: insertDepartment.description || null,
+    };
+    
+    const result = await this.db.insert(departments).values(newDepartment).returning();
+    return result[0];
+  }
+
+  // Documents
+  async getDocument(id: string): Promise<Document | undefined> {
+    const result = await this.db.select().from(documents).where(eq(documents.id, id));
+    return result[0];
+  }
+
+  async createDocument(insertDocument: InsertDocument): Promise<Document> {
+    const newDocument = {
+      ...insertDocument,
+      description: insertDocument.description || null,
+      dueDate: insertDocument.dueDate || null,
+      status: "pending" as const,
+      priority: insertDocument.priority || "medium",
+    };
+    
+    const result = await this.db.insert(documents).values(newDocument).returning();
+    return result[0];
+  }
+
+  async updateDocument(id: string, updates: Partial<Document>): Promise<Document | undefined> {
+    const result = await this.db
+      .update(documents)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(documents.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async getDocumentsByCreator(creatorId: string): Promise<Document[]> {
+    return await this.db
+      .select()
+      .from(documents)
+      .where(eq(documents.createdBy, creatorId))
+      .orderBy(desc(documents.createdAt));
+  }
+
+  async getDocumentsByDepartment(departmentId: string): Promise<Document[]> {
+    // Note: This requires a more complex query with JSON operations
+    // For now, we'll get all documents and filter in memory
+    const allDocuments = await this.db.select().from(documents).orderBy(desc(documents.createdAt));
+    return allDocuments.filter(doc => 
+      doc.recipientDepartments.includes(departmentId)
+    );
+  }
+
+  // Notifications
+  async getNotification(id: string): Promise<Notification | undefined> {
+    const result = await this.db.select().from(notifications).where(eq(notifications.id, id));
+    return result[0];
+  }
+
+  async createNotification(insertNotification: InsertNotification): Promise<Notification> {
+    const newNotification = {
+      ...insertNotification,
+      documentId: insertNotification.documentId || null,
+      read: false,
+    };
+    
+    const result = await this.db.insert(notifications).values(newNotification).returning();
+    return result[0];
+  }
+
+  async getNotificationsByDepartment(departmentId: string): Promise<Notification[]> {
+    // Note: This requires a more complex query with JSON operations
+    // For now, we'll get all notifications and filter in memory
+    const allNotifications = await this.db
+      .select()
+      .from(notifications)
+      .orderBy(desc(notifications.createdAt));
+    
+    return allNotifications.filter(notification =>
+      notification.targetDepartments.includes(departmentId)
+    );
+  }
+
+  async markNotificationAsRead(id: string): Promise<void> {
+    await this.db
+      .update(notifications)
+      .set({ read: true })
+      .where(eq(notifications.id, id));
+  }
+}
+
+// Use PostgreSQL storage in production, fallback to memory storage for testing
+export const storage = process.env.DATABASE_URL ? new PostgresStorage() : new MemStorage();
