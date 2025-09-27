@@ -1,14 +1,17 @@
 import { initializeApp } from "firebase/app";
-import { getAuth, connectAuthEmulator } from "firebase/auth";
-import { getFirestore, connectFirestoreEmulator } from "firebase/firestore";
-import { getStorage, connectStorageEmulator } from "firebase/storage";
+import { getAuth } from "firebase/auth";
+import { getFirestore } from "firebase/firestore";
+import { getStorage } from "firebase/storage";
+import { getAnalytics } from "firebase/analytics";
 
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: `${import.meta.env.VITE_FIREBASE_PROJECT_ID}.firebaseapp.com`,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket: `${import.meta.env.VITE_FIREBASE_PROJECT_ID}.firebasestorage.app`,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  apiKey: "AIzaSyCBeoJfNrXFFbJYyQsU5z2BDOW0EJYBvkk",
+  authDomain: "lexivox-cd3ee.firebaseapp.com",
+  projectId: "lexivox-cd3ee",
+  storageBucket: "lexivox-cd3ee.firebasestorage.app",
+  messagingSenderId: "322901459727",
+  appId: "1:322901459727:web:f0bbd745f24956124c347a",
+  measurementId: "G-LCEYYG50DV"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -16,6 +19,7 @@ const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getFirestore(app);
 export const storage = getStorage(app);
+export const analytics = getAnalytics(app);
 
 // Note: Firebase emulators disabled for production use
 // Uncomment the following block only if you want to use Firebase emulators in development

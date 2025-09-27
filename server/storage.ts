@@ -343,5 +343,7 @@ export class PostgresStorage implements IStorage {
   }
 }
 
-// Use PostgreSQL storage in production, fallback to memory storage for testing
-export const storage = process.env.DATABASE_URL ? new PostgresStorage() : new MemStorage();
+import { FirestoreStorage } from "./storage/firestore-storage";
+
+// Use Firestore storage as requested by user
+export const storage = new FirestoreStorage();
