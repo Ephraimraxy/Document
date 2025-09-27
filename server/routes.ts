@@ -1,11 +1,10 @@
 import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
-import multer, { type Multer } from "multer";
+import multer from "multer";
 import { z } from "zod";
 import { storage } from "./storage";
 import { onlyOfficeService } from "./services/onlyoffice";
 import { insertDocumentSchema } from "@shared/schema";
-
 import { auth } from "./middleware/auth";
 
 const upload = multer({
@@ -13,7 +12,7 @@ const upload = multer({
   limits: {
     fileSize: 50 * 1024 * 1024, // 50MB
   },
-  fileFilter: (req, file, cb) => {
+  fileFilter: (req: any, file: any, cb: any) => {
     const allowedTypes = [
       "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
       "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -210,8 +209,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // For MVP, we'll simulate file update
           console.log("Document updated via OnlyOffice:", documentId);
           
-          // Update document in storage
-          await storage.updateDocument(documentId, { fileUrl: updatedFileUrl });
+          // Update document in storage with the new URL from OnlyOffice
+          await storage.updateDocument(documentId, { fileUrl: url });
         }
       }
 

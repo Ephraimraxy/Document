@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { User, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "firebase/auth";
-import { auth } from "@/lib/firebase";
+import { doc, getDoc, setDoc } from "firebase/firestore";
+import { auth, db } from "@/lib/firebase";
 import type { User as AppUser } from "@shared/schema";
 
 interface AuthContextType {
@@ -24,20 +25,36 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       if (user) {
         try {
-          // Get user profile from our PostgreSQL backend instead of Firestore
-          const token = await user.getIdToken();
-          const response = await fetch('/api/profile', {
-            headers: {
-              'Authorization': `Bearer ${token}`,
-              'Content-Type': 'application/json'
-            }
-          });
+          // Get user profile from Firestore
+          const userDoc = await getDoc(doc(db, "users", user.uid));
           
-          if (response.ok) {
-            const userProfile = await response.json();
-            setUserProfile(userProfile);
+          if (userDoc.exists()) {
+            const userData = userDoc.data();
+            setUserProfile({
+              id: user.uid,
+              email: userData.email,
+              name: userData.name,
+              departmentId: userData.departmentId,
+              role: userData.role,
+              createdAt: userData.createdAt?.toDate(),
+            } as AppUser);
           } else {
-            console.error("Failed to fetch user profile from backend");
+            // Create user profile if it doesn't exist
+            // Check if this is the admin user
+            const isAdmin = user.email === "hoseaephraim50@gmail.com";
+            const newUserProfile = {
+              email: user.email!,
+              name: user.displayName || user.email!.split('@')[0],
+              departmentId: "admin", // Default department
+              role: isAdmin ? "admin" : "user", // Give admin role to specified email
+              createdAt: new Date(),
+            };
+            
+            await setDoc(doc(db, "users", user.uid), newUserProfile);
+            setUserProfile({
+              id: user.uid,
+              ...newUserProfile,
+            } as AppUser);
           }
         } catch (error) {
           console.error("Error fetching user profile:", error);
