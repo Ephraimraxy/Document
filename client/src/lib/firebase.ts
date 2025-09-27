@@ -17,16 +17,18 @@ export const auth = getAuth(app);
 export const db = getFirestore(app);
 export const storage = getStorage(app);
 
-// Connect to emulators in development
+// Note: Firebase emulators disabled for production use
+// Uncomment the following block only if you want to use Firebase emulators in development
+/*
 if (import.meta.env.DEV) {
   try {
     connectAuthEmulator(auth, "http://localhost:9099");
     connectFirestoreEmulator(db, "localhost", 8080);
     connectStorageEmulator(storage, "localhost", 9199);
   } catch (error) {
-    // Emulators might already be connected
     console.log("Firebase emulators already connected");
   }
 }
+*/
 
 export default app;
