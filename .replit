@@ -15,11 +15,7 @@ localPort = 5000
 externalPort = 80
 
 [[ports]]
-localPort = 34481
-externalPort = 4200
-
-[[ports]]
-localPort = 34975
+localPort = 36397
 externalPort = 3003
 
 [[ports]]
@@ -62,5 +58,5 @@ outputType = "webview"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "FIREBASE_PROJECT_ID=lexivox-cd3ee npm run dev"
+args = "FIREBASE_PROJECT_ID=\"lexivox-cd3ee\" npm run dev"
 waitForPort = 5000
