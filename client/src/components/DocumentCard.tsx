@@ -2,7 +2,12 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatDistanceToNow } from "date-fns";
-import { FileText, FileSpreadsheet, Presentation, Eye, Edit } from "lucide-react";
+import { FileText, FileSpreadsheet, Presentation, Eye, Edit, Trash2 } from "lucide-react";
+import { useState } from "react";
+import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
+import { LiveStatus } from "@/components/ui/live-status";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 import type { Document } from "@shared/schema";
 
 interface DocumentCardProps {
@@ -10,14 +15,45 @@ interface DocumentCardProps {
   showSender?: boolean;
   onEdit?: (documentId: string) => void;
   onView?: (documentId: string) => void;
+  onDelete?: (documentId: string) => void;
+  showDelete?: boolean;
 }
 
 export default function DocumentCard({ 
   document, 
   showSender = false, 
   onEdit, 
-  onView 
+  onView,
+  onDelete,
+  showDelete = false
 }: DocumentCardProps) {
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const { toast } = useToast();
+
+  const handleDelete = async () => {
+    if (!onDelete) return;
+    
+    setIsDeleting(true);
+    try {
+      await apiRequest("DELETE", `/api/documents/${document.id}`);
+      onDelete(document.id);
+      toast({
+        title: "✅ Document deleted",
+        description: "The document has been permanently deleted.",
+        variant: "default",
+      });
+    } catch (error: any) {
+      toast({
+        title: "❌ Delete failed",
+        description: error.message || "Failed to delete the document.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsDeleting(false);
+      setShowDeleteDialog(false);
+    }
+  };
   const getFileIcon = (fileType: string) => {
     if (fileType.includes("word")) return FileText;
     if (fileType.includes("sheet")) return FileSpreadsheet;
@@ -67,9 +103,11 @@ export default function DocumentCard({
             </div>
           </div>
           <div className="flex items-center space-x-2">
-            <Badge className={getStatusColor(document.status)} data-testid="document-status">
-              {document.status}
-            </Badge>
+            <LiveStatus 
+              type="document" 
+              status={document.status} 
+              className="mr-2"
+            />
             <Badge className={getPriorityColor(document.priority)} data-testid="document-priority">
               {document.priority}
             </Badge>
@@ -93,9 +131,33 @@ export default function DocumentCard({
                 <Edit className="h-4 w-4" />
               </Button>
             )}
+            {showDelete && onDelete && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowDeleteDialog(true)}
+                disabled={isDeleting}
+                data-testid="button-delete-document"
+              >
+                <Trash2 className="h-4 w-4 text-destructive" />
+              </Button>
+            )}
           </div>
         </div>
       </CardContent>
+
+      {/* Delete Confirmation Dialog */}
+      <ConfirmationDialog
+        open={showDeleteDialog}
+        onOpenChange={setShowDeleteDialog}
+        title="Delete Document?"
+        description={`Are you sure you want to delete "${document.title}"? This action cannot be undone.`}
+        confirmText="Delete"
+        cancelText="Cancel"
+        variant="destructive"
+        onConfirm={handleDelete}
+        isLoading={isDeleting}
+      />
     </Card>
   );
 }

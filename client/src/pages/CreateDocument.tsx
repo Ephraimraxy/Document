@@ -1,5 +1,8 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { UploadProgress } from "@/components/ui/upload-progress";
+import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
+import { LiveStatus } from "@/components/ui/live-status";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useAuth } from "@/contexts/AuthContext";
@@ -40,6 +43,10 @@ const departments = [
 export default function CreateDocument() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadStatus, setUploadStatus] = useState<"uploading" | "success" | "error" | "cancelled">("uploading");
+  const [showCancelDialog, setShowCancelDialog] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
   const [dragOver, setDragOver] = useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
@@ -108,6 +115,41 @@ export default function CreateDocument() {
     }
   };
 
+  const simulateUploadProgress = () => {
+    setUploadProgress(0);
+    setUploadStatus("uploading");
+    setUploadError(null);
+    
+    const interval = setInterval(() => {
+      setUploadProgress(prev => {
+        if (prev >= 95) {
+          clearInterval(interval);
+          return 95;
+        }
+        return prev + Math.random() * 15;
+      });
+    }, 200);
+    
+    return interval;
+  };
+
+  const cancelUpload = () => {
+    setShowCancelDialog(true);
+  };
+
+  const confirmCancelUpload = () => {
+    setUploadStatus("cancelled");
+    setIsUploading(false);
+    setUploadProgress(0);
+    setShowCancelDialog(false);
+    
+    toast({
+      title: "Upload cancelled",
+      description: "Document upload has been cancelled.",
+      variant: "default",
+    });
+  };
+
   const onSubmit = async (data: CreateDocumentFormData) => {
     if (!selectedFile) {
       toast({
@@ -119,6 +161,8 @@ export default function CreateDocument() {
     }
 
     setIsUploading(true);
+    const progressInterval = simulateUploadProgress();
+    
     try {
       const formData = new FormData();
       formData.append("file", selectedFile);
@@ -132,20 +176,37 @@ export default function CreateDocument() {
 
       const response = await apiRequest("POST", "/api/documents", formData);
       
+      // Complete the upload progress
+      clearInterval(progressInterval);
+      setUploadProgress(100);
+      setUploadStatus("success");
+      
       toast({
-        title: "Document created successfully",
+        title: "✅ Document created successfully",
         description: "Your document has been uploaded and shared with the selected departments.",
+        variant: "default",
       });
 
-      setLocation("/");
+      // Delay navigation to show success state
+      setTimeout(() => {
+        setLocation("/");
+      }, 1500);
+      
     } catch (error: any) {
+      clearInterval(progressInterval);
+      setUploadProgress(0);
+      setUploadStatus("error");
+      setUploadError(error.message || "Upload failed");
+      
       toast({
-        title: "Failed to create document",
+        title: "❌ Failed to create document",
         description: error.message || "An error occurred while creating the document.",
         variant: "destructive",
       });
     } finally {
-      setIsUploading(false);
+      setTimeout(() => {
+        setIsUploading(false);
+      }, 2000);
     }
   };
 
@@ -267,8 +328,17 @@ export default function CreateDocument() {
                     />
                   </div>
 
-                  {/* File Preview */}
-                  {selectedFile && (
+                  {/* Upload Progress or File Preview */}
+                  {isUploading && selectedFile ? (
+                    <UploadProgress
+                      fileName={selectedFile.name}
+                      progress={uploadProgress}
+                      status={uploadStatus}
+                      error={uploadError || undefined}
+                      onCancel={cancelUpload}
+                      size={formatFileSize(selectedFile.size)}
+                    />
+                  ) : selectedFile ? (
                     <div className="p-4 bg-muted rounded-lg border border-border" data-testid="file-preview">
                       <div className="flex items-center space-x-3">
                         <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
@@ -291,7 +361,7 @@ export default function CreateDocument() {
                         </Button>
                       </div>
                     </div>
-                  )}
+                  ) : null}
                 </div>
 
                 {/* Priority and Due Date */}
@@ -348,6 +418,19 @@ export default function CreateDocument() {
           </Card>
         </div>
       </main>
+      
+      {/* Upload Cancel Confirmation Dialog */}
+      <ConfirmationDialog
+        open={showCancelDialog}
+        onOpenChange={setShowCancelDialog}
+        title="Cancel Upload?"
+        description="Are you sure you want to cancel the upload? All progress will be lost."
+        confirmText="Yes, Cancel"
+        cancelText="Continue Upload"
+        variant="warning"
+        onConfirm={confirmCancelUpload}
+        isLoading={false}
+      />
     </div>
   );
 }
