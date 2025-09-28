@@ -35,9 +35,8 @@ export interface IStorage {
   markNotificationAsRead(id: string): Promise<void>;
 }
 
-// Note: Removed PostgreSQL and MemStorage implementations as we're now using Firestore
+// Using MemoryStorage for immediate functionality without cloud credentials
+import { MemoryStorage } from "./storage/memory-storage";
 
-import { FirestoreStorage } from "./storage/firestore-storage";
-
-// Use Firestore storage as requested by user
-export const storage = new FirestoreStorage();
+// Use in-memory storage for development and testing
+export const storage = new MemoryStorage();
