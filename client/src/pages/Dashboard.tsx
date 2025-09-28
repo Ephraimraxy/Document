@@ -5,11 +5,13 @@ import DocumentCard from "@/components/DocumentCard";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { FileText, CheckCircle, Clock, Share } from "lucide-react";
 import { useLocation } from "wouter";
+import { useSidebar } from "@/contexts/SidebarContext";
 
 export default function Dashboard() {
   const { userProfile } = useAuth();
   const { sentDocuments, receivedDocuments, isLoading } = useDocuments();
   const [, setLocation] = useLocation();
+  const { sidebarWidth } = useSidebar();
 
   const stats = {
     totalDocuments: sentDocuments?.length || 0,
@@ -32,7 +34,7 @@ export default function Dashboard() {
 
   if (isLoading) {
     return (
-      <div className="ml-64 min-h-screen">
+      <div className={`${sidebarWidth} min-h-screen transition-all duration-300`}>
         <Header 
           title="Dashboard" 
           subtitle="Overview of your documents and activities" 
@@ -56,7 +58,7 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="ml-64 min-h-screen">
+    <div className={`${sidebarWidth} min-h-screen transition-all duration-300`}>
       <Header 
         title="Dashboard" 
         subtitle="Overview of your documents and activities" 

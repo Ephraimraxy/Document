@@ -15,6 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { CloudUpload, FileText, X } from "lucide-react";
 import { useLocation } from "wouter";
+import { useSidebar } from "@/contexts/SidebarContext";
 
 const createDocumentSchema = z.object({
   title: z.string().min(1, "Document title is required"),
@@ -43,6 +44,7 @@ export default function CreateDocument() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [, setLocation] = useLocation();
+  const { sidebarWidth } = useSidebar();
 
   const {
     register,
@@ -156,7 +158,7 @@ export default function CreateDocument() {
   };
 
   return (
-    <div className="ml-64 min-h-screen">
+    <div className={`${sidebarWidth} min-h-screen transition-all duration-300`}>
       <Header 
         title="Create Document" 
         subtitle="Upload and share a new document" 
