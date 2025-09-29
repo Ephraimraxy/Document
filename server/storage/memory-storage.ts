@@ -31,6 +31,7 @@ export class MemoryStorage implements IStorage {
       { id: "ict", name: "ICT", description: "Information and Communication Technology" },
       { id: "logistics", name: "Logistics", description: "Logistics Department" },
       { id: "marketing", name: "Marketing", description: "Marketing Department" },
+      { id: "unassigned", name: "Unassigned", description: "Unrecognized email addresses - access denied" },
     ];
 
     defaultDepartments.forEach(dept => {
