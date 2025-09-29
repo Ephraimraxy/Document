@@ -1,30 +1,38 @@
-import { initializeApp, getApps } from "firebase-admin/app";
-import { getAuth } from "firebase-admin/auth";
-import { getStorage } from "firebase-admin/storage";
-import { getFirestore } from "firebase-admin/firestore";
+import { initializeApp, getApps, type App } from "firebase-admin/app";
+import { getAuth, type Auth } from "firebase-admin/auth";
+import { getStorage, type Storage } from "firebase-admin/storage";
+import { getFirestore, type Firestore } from "firebase-admin/firestore";
 
 // Initialize Firebase Admin SDK with environment variables
+let app: App | null = null;
+let auth: Auth | null = null;
+let storage: Storage | null = null;
+let firestore: Firestore | null = null;
+
 if (!getApps().length) {
   // Use environment variables for Firebase project configuration
-  const projectId = process.env.FIREBASE_PROJECT_ID || process.env.VITE_FIREBASE_PROJECT_ID;
+  const projectId = process.env.FIREBASE_PROJECT_ID || process.env.VITE_FIREBASE_PROJECT_ID || "lexivox-cd3ee";
   
-  if (!projectId) {
-    console.warn("Firebase Admin SDK not initialized - missing project configuration");
-  } else {
-    try {
-      initializeApp({
-        projectId,
-        storageBucket: `${projectId}.firebasestorage.app`,
-      });
-    } catch (error) {
-      console.warn("Firebase Admin SDK initialization skipped:", error);
-    }
+  try {
+    app = initializeApp({
+      projectId,
+      storageBucket: `${projectId}.firebasestorage.app`,
+    });
+    
+    auth = getAuth(app);
+    storage = getStorage(app);
+    firestore = getFirestore(app);
+    
+    console.log("Firebase Admin SDK initialized successfully");
+  } catch (error) {
+    console.warn("Firebase Admin SDK initialization failed:", error);
   }
+} else {
+  app = getApps()[0];
+  auth = getAuth(app);
+  storage = getStorage(app);
+  firestore = getFirestore(app);
 }
-
-const auth = getAuth();
-const storage = getStorage();
-const firestore = getFirestore();
 
 export const firebaseAdmin = {
   auth,
@@ -32,6 +40,9 @@ export const firebaseAdmin = {
   firestore,
 
   async verifyIdToken(idToken: string) {
+    if (!auth) {
+      throw new Error("Firebase Admin SDK not initialized");
+    }
     try {
       return await auth.verifyIdToken(idToken);
     } catch (error) {
@@ -41,6 +52,9 @@ export const firebaseAdmin = {
   },
 
   async uploadFile(file: any, path: string): Promise<string> {
+    if (!storage) {
+      throw new Error("Firebase Admin SDK not initialized");
+    }
     try {
       const bucket = storage.bucket();
       const fileRef = bucket.file(path);
@@ -62,6 +76,9 @@ export const firebaseAdmin = {
   },
 
   async uploadBuffer(buffer: Buffer, fileName: string, contentType: string): Promise<string> {
+    if (!storage) {
+      throw new Error("Firebase Admin SDK not initialized");
+    }
     try {
       const bucket = storage.bucket();
       const path = `documents/updated/${Date.now()}_${fileName}`;
@@ -83,6 +100,9 @@ export const firebaseAdmin = {
   },
 
   async getSignedUrl(fileUrl: string, expiresIn: number = 3600): Promise<string> {
+    if (!storage) {
+      throw new Error("Firebase Admin SDK not initialized");
+    }
     try {
       const bucket = storage.bucket();
       const fileName = fileUrl.split('/').pop();
@@ -106,6 +126,9 @@ export const firebaseAdmin = {
   },
 
   async deleteFile(path: string): Promise<void> {
+    if (!storage) {
+      throw new Error("Firebase Admin SDK not initialized");
+    }
     try {
       const bucket = storage.bucket();
       const file = bucket.file(path);
