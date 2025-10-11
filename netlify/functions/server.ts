@@ -1,69 +1,117 @@
 import type { Handler, HandlerEvent, HandlerContext } from "@netlify/functions";
-import express from "express";
-import { registerRoutes } from "../../server/routes";
+import jwt from "jsonwebtoken";
+import { randomUUID } from "crypto";
 
-// Create Express app
-const app = express();
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+const ONLYOFFICE_SECRET = process.env.ONLYOFFICE_SECRET || "6c7176c0e28d4653a9c7178cff054122";
+const ONLYOFFICE_SERVER = process.env.ONLYOFFICE_SERVER || "https://0df6a6d6.docs.onlyoffice.com";
 
-// Register routes
-let server: any;
-registerRoutes(app).then((s) => {
-  server = s;
-});
-
-// Netlify serverless function handler
 export const handler: Handler = async (event: HandlerEvent, context: HandlerContext) => {
-  return new Promise((resolve) => {
-    const { httpMethod, path, body, headers, queryStringParameters } = event;
-    
-    // Convert Netlify event to Express request-like object
-    const req = {
-      method: httpMethod,
-      url: path,
-      path: path,
-      body: body ? JSON.parse(body) : {},
-      headers: headers || {},
-      query: queryStringParameters || {},
-      get: (name: string) => headers?.[name.toLowerCase()] || headers?.[name],
-      protocol: 'https',
-    } as any;
+  // Set CORS headers
+  const headers = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Headers': 'Content-Type',
+    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+    'Content-Type': 'application/json',
+  };
 
-    // Create response object
-    let responseBody: any;
-    let statusCode = 200;
-    let responseHeaders: Record<string, string> = {};
+  // Handle preflight requests
+  if (event.httpMethod === 'OPTIONS') {
+    return {
+      statusCode: 200,
+      headers,
+      body: '',
+    };
+  }
 
-    const res = {
-      status: (code: number) => {
-        statusCode = code;
-        return res;
-      },
-      json: (data: any) => {
-        responseBody = data;
-        responseHeaders['Content-Type'] = 'application/json';
-        return res;
-      },
-      send: (data: any) => {
-        responseBody = data;
-        return res;
-      },
-      set: (headers: Record<string, string>) => {
-        Object.assign(responseHeaders, headers);
-        return res;
-      },
-      end: (data?: any) => {
-        if (data) responseBody = data;
-        resolve({
-          statusCode,
-          headers: responseHeaders,
-          body: typeof responseBody === 'string' ? responseBody : JSON.stringify(responseBody),
-        });
-      },
-    } as any;
+  try {
+    // Handle doc-config endpoint
+    if (event.path === '/api/doc-config' && event.httpMethod === 'POST') {
+      const body = event.body ? JSON.parse(event.body) : {};
+      const { documentType = "docx", title = "Untitled Document" } = body;
+      
+      const documentKey = randomUUID();
+      const fileType = documentType;
+      
+      // Get the site URL from the event
+      const siteUrl = `https://${event.headers.host}`;
+      const documentUrl = `${siteUrl}/templates/blank.${fileType}`;
+      
+      const docConfig = {
+        document: {
+          fileType: fileType,
+          key: documentKey,
+          title: title,
+          url: documentUrl,
+          permissions: {
+            comment: true,
+            copy: true,
+            download: true,
+            edit: true,
+            fillForms: true,
+            modifyContentControl: true,
+            modifyFilter: true,
+            print: true,
+            review: true
+          }
+        },
+        documentType: fileType === "docx" ? "word" : fileType === "xlsx" ? "cell" : "slide",
+        editorConfig: {
+          mode: "edit",
+          callbackUrl: `${siteUrl}/api/callback`,
+        },
+      };
+      
+      const token = jwt.sign(docConfig, ONLYOFFICE_SECRET, {
+        expiresIn: "1h"
+      });
+      
+      return {
+        statusCode: 200,
+        headers,
+        body: JSON.stringify({
+          docConfig,
+          token,
+          serverUrl: ONLYOFFICE_SERVER
+        }),
+      };
+    }
 
-    // Handle the request
-    app(req, res);
-  });
+    // Handle callback endpoint
+    if (event.path === '/api/callback') {
+      return {
+        statusCode: 200,
+        headers,
+        body: JSON.stringify({ error: 0 }),
+      };
+    }
+
+    // Handle template files
+    if (event.path.startsWith('/templates/')) {
+      // For now, return a simple response indicating the template would be served
+      // In a real implementation, you'd serve the actual template files
+      return {
+        statusCode: 200,
+        headers: {
+          'Content-Type': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+          'Access-Control-Allow-Origin': '*',
+        },
+        body: 'Template file would be served here',
+      };
+    }
+
+    // Default response
+    return {
+      statusCode: 404,
+      headers,
+      body: JSON.stringify({ error: 'Not found' }),
+    };
+
+  } catch (error) {
+    console.error('Function error:', error);
+    return {
+      statusCode: 500,
+      headers,
+      body: JSON.stringify({ error: 'Internal server error' }),
+    };
+  }
 };
