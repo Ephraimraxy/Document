@@ -35,14 +35,19 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
       // Get the site URL from the event
       const siteUrl = `https://${event.headers.host}`;
       
-      // Use publicly available sample files that OnlyOffice can access
+      // Use public template URLs that OnlyOffice can definitely access
       const publicTemplateUrls = {
         'docx': 'https://www.learningcontainer.com/wp-content/uploads/2019/09/sample-doc-file.docx',
         'xlsx': 'https://www.learningcontainer.com/wp-content/uploads/2019/09/sample-xlsx-file.xlsx',
         'pptx': 'https://www.learningcontainer.com/wp-content/uploads/2019/09/sample-pptx-file.pptx'
       };
       
-      const documentUrl = publicTemplateUrls[fileType as keyof typeof publicTemplateUrls] || `${siteUrl}/templates/blank.${fileType}`;
+      const documentUrl = publicTemplateUrls[fileType] || `${siteUrl}/templates/blank.${fileType}`;
+      
+      // Debug logging
+      console.log('Generated document URL:', documentUrl);
+      console.log('Host header:', event.headers.host);
+      console.log('File type:', fileType);
       
       const docConfig = {
         document: {
