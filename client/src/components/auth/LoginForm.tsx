@@ -82,9 +82,13 @@ export const LoginForm: React.FC = () => {
           </form>
           
           <div className="mt-6 text-sm text-gray-600">
-            <p className="text-center">Demo Credentials:</p>
-            <p className="text-center">admin@company.com / admin123</p>
-            <p className="text-center">manager@company.com / manager123</p>
+            <p className="text-center font-semibold text-blue-600">Primary Admin:</p>
+            <p className="text-center">hoseaephraim50@gmail.com / Princesali@1</p>
+            <div className="mt-2 pt-2 border-t border-gray-200">
+              <p className="text-center text-xs text-gray-500">Demo Credentials:</p>
+              <p className="text-center text-xs">john.admin@company.com / admin123</p>
+              <p className="text-center text-xs">jane.manager@company.com / manager123</p>
+            </div>
           </div>
         </CardContent>
       </Card>

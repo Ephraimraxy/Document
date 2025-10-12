@@ -49,6 +49,11 @@ export const Dashboard: React.FC = () => {
               <h1 className="text-2xl font-bold text-gray-900">DocuEdit</h1>
               <p className="text-sm text-gray-600">
                 Welcome back, {user.name} ({user.department})
+                {user.role === 'admin' && (
+                  <span className="ml-2 inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                    🔐 ADMIN
+                  </span>
+                )}
               </p>
             </div>
             <div className="flex items-center space-x-4">
@@ -75,10 +80,18 @@ export const Dashboard: React.FC = () => {
                   )}
                 </Button>
               </div>
-              <Button variant="outline" size="sm">
-                <Settings className="h-4 w-4 mr-2" />
-                {user.name}
-              </Button>
+              <div className="flex items-center space-x-2">
+                {user.role === 'admin' && (
+                  <Button variant="outline" size="sm" className="bg-red-50 border-red-200 text-red-700 hover:bg-red-100">
+                    <Settings className="h-4 w-4 mr-2" />
+                    Admin Panel
+                  </Button>
+                )}
+                <Button variant="outline" size="sm">
+                  <Settings className="h-4 w-4 mr-2" />
+                  {user.name}
+                </Button>
+              </div>
             </div>
           </div>
         </div>

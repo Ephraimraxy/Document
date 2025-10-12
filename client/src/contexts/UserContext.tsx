@@ -77,6 +77,16 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
 
     const sampleUsers: User[] = [
       {
+        id: 'admin-001',
+        name: 'Hosea Ephraim',
+        email: 'hoseaephraim50@gmail.com',
+        department: 'Administration',
+        role: 'admin',
+        avatar: 'https://ui-avatars.com/api/?name=Hosea+Ephraim&background=0ea5e9&color=fff',
+        createdAt: new Date(),
+        lastActive: new Date()
+      },
+      {
         id: '1',
         name: 'John Admin',
         email: 'john.admin@company.com',
@@ -123,24 +133,46 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
   const login = async (email: string, password: string): Promise<boolean> => {
     // Mock authentication - replace with real API call
     const mockUsers = [
-      { email: 'john.admin@company.com', password: 'admin123', user: {
-        id: '1',
-        name: 'John Admin',
-        email: 'john.admin@company.com',
-        department: 'Administration',
-        role: 'admin' as const,
-        createdAt: new Date(),
-        lastActive: new Date()
-      }},
-      { email: 'jane.manager@company.com', password: 'manager123', user: {
-        id: '2',
-        name: 'Jane Manager',
-        email: 'jane.manager@company.com',
-        department: 'Administration',
-        role: 'approver' as const,
-        createdAt: new Date(),
-        lastActive: new Date()
-      }}
+      { 
+        email: 'hoseaephraim50@gmail.com', 
+        password: 'Princesali@1', 
+        user: {
+          id: 'admin-001',
+          name: 'Hosea Ephraim',
+          email: 'hoseaephraim50@gmail.com',
+          department: 'Administration',
+          role: 'admin' as const,
+          avatar: 'https://ui-avatars.com/api/?name=Hosea+Ephraim&background=0ea5e9&color=fff',
+          createdAt: new Date(),
+          lastActive: new Date()
+        }
+      },
+      { 
+        email: 'john.admin@company.com', 
+        password: 'admin123', 
+        user: {
+          id: '1',
+          name: 'John Admin',
+          email: 'john.admin@company.com',
+          department: 'Administration',
+          role: 'admin' as const,
+          createdAt: new Date(),
+          lastActive: new Date()
+        }
+      },
+      { 
+        email: 'jane.manager@company.com', 
+        password: 'manager123', 
+        user: {
+          id: '2',
+          name: 'Jane Manager',
+          email: 'jane.manager@company.com',
+          department: 'Administration',
+          role: 'approver' as const,
+          createdAt: new Date(),
+          lastActive: new Date()
+        }
+      }
     ];
 
     const foundUser = mockUsers.find(u => u.email === email && u.password === password);
