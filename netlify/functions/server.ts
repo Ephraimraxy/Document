@@ -35,19 +35,10 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
       // Get the site URL from the event
       const siteUrl = `https://${event.headers.host}`;
       
-      // Use public template URLs that OnlyOffice can definitely access
-      const publicTemplateUrls = {
-        'docx': 'https://www.learningcontainer.com/wp-content/uploads/2019/09/sample-doc-file.docx',
-        'xlsx': 'https://www.learningcontainer.com/wp-content/uploads/2019/09/sample-xlsx-file.xlsx',
-        'pptx': 'https://www.learningcontainer.com/wp-content/uploads/2019/09/sample-pptx-file.pptx'
-      };
+      // Use our own API endpoint to serve templates - most reliable approach
+      const documentUrl = `${siteUrl}/api/template/${fileType}`;
       
-      const documentUrl = publicTemplateUrls[fileType] || `${siteUrl}/templates/blank.${fileType}`;
-      
-      // Debug logging
       console.log('Generated document URL:', documentUrl);
-      console.log('Host header:', event.headers.host);
-      console.log('File type:', fileType);
       
       const docConfig = {
         document: {
@@ -86,6 +77,121 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
           token,
           serverUrl: ONLYOFFICE_SERVER
         }),
+      };
+    }
+
+    // Handle template serving endpoint
+    if (event.path.startsWith('/api/template/')) {
+      const fileType = event.path.split('/').pop();
+      
+      // Create minimal blank documents
+      let templateBuffer;
+      let contentType;
+      
+      if (fileType === 'docx') {
+        // Minimal DOCX
+        const JSZip = require('jszip');
+        const zip = new JSZip();
+        
+        zip.file('[Content_Types].xml', `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
+<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
+<Default Extension="xml" ContentType="application/xml"/>
+<Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>
+</Types>`);
+        
+        zip.folder('_rels').file('.rels', `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/>
+</Relationships>`);
+        
+        zip.folder('word').file('document.xml', `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+<w:body><w:p><w:r><w:t></w:t></w:r></w:p></w:body>
+</w:document>`);
+        
+        templateBuffer = await zip.generateAsync({type: 'nodebuffer'});
+        contentType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+        
+      } else if (fileType === 'xlsx') {
+        // Minimal XLSX
+        const JSZip = require('jszip');
+        const zip = new JSZip();
+        
+        zip.file('[Content_Types].xml', `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
+<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
+<Default Extension="xml" ContentType="application/xml"/>
+<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>
+<Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>
+</Types>`);
+        
+        zip.folder('_rels').file('.rels', `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/>
+</Relationships>`);
+        
+        zip.folder('xl').file('workbook.xml', `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
+<sheets><sheet name="Sheet1" sheetId="1" r:id="rId1"/></sheets>
+</workbook>`);
+        
+        zip.folder('xl/_rels').file('workbook.xml.rels', `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/>
+</Relationships>`);
+        
+        zip.folder('xl/worksheets').file('sheet1.xml', `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
+<sheetData/>
+</worksheet>`);
+        
+        templateBuffer = await zip.generateAsync({type: 'nodebuffer'});
+        contentType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+        
+      } else if (fileType === 'pptx') {
+        // Minimal PPTX
+        const JSZip = require('jszip');
+        const zip = new JSZip();
+        
+        zip.file('[Content_Types].xml', `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
+<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
+<Default Extension="xml" ContentType="application/xml"/>
+<Override PartName="/ppt/presentation.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.presentation.main+xml"/>
+</Types>`);
+        
+        zip.folder('_rels').file('.rels', `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="ppt/presentation.xml"/>
+</Relationships>`);
+        
+        zip.folder('ppt').file('presentation.xml', `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<p:presentation xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main">
+<p:sldIdLst/>
+</p:presentation>`);
+        
+        templateBuffer = await zip.generateAsync({type: 'nodebuffer'});
+        contentType = 'application/vnd.openxmlformats-officedocument.presentationml.presentation';
+      } else {
+        return {
+          statusCode: 404,
+          headers,
+          body: JSON.stringify({ error: 'Template not found' }),
+        };
+      }
+      
+      return {
+        statusCode: 200,
+        headers: {
+          'Content-Type': contentType,
+          'Content-Disposition': `inline; filename=blank.${fileType}`,
+          'Content-Length': templateBuffer.length.toString(),
+          'Access-Control-Allow-Origin': '*',
+          'Cache-Control': 'public, max-age=3600',
+        },
+        body: templateBuffer.toString('base64'),
+        isBase64Encoded: true,
       };
     }
 
