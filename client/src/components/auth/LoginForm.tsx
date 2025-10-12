@@ -84,10 +84,35 @@ export const LoginForm: React.FC = () => {
           <div className="mt-6 text-sm text-gray-600">
             <p className="text-center font-semibold text-blue-600">Primary Admin:</p>
             <p className="text-center">hoseaephraim50@gmail.com / Princesali@1</p>
-            <div className="mt-2 pt-2 border-t border-gray-200">
-              <p className="text-center text-xs text-gray-500">Demo Credentials:</p>
-              <p className="text-center text-xs">john.admin@company.com / admin123</p>
-              <p className="text-center text-xs">jane.manager@company.com / manager123</p>
+            
+            <div className="mt-4 pt-2 border-t border-gray-200">
+              <p className="text-center font-semibold text-green-600 mb-2">Department Logins:</p>
+              
+              <div className="space-y-2 text-xs">
+                <div className="bg-gray-50 p-2 rounded">
+                  <p className="font-medium text-gray-700">Administration:</p>
+                  <p>john.admin@company.com / admin123</p>
+                  <p>jane.manager@company.com / manager123</p>
+                </div>
+                
+                <div className="bg-blue-50 p-2 rounded">
+                  <p className="font-medium text-gray-700">Human Resources:</p>
+                  <p>mike.hr@company.com / hr123</p>
+                  <p>sarah.hr@company.com / hr456</p>
+                </div>
+                
+                <div className="bg-green-50 p-2 rounded">
+                  <p className="font-medium text-gray-700">Finance:</p>
+                  <p>david.finance@company.com / finance123</p>
+                  <p>lisa.finance@company.com / finance456</p>
+                </div>
+                
+                <div className="bg-purple-50 p-2 rounded">
+                  <p className="font-medium text-gray-700">Marketing:</p>
+                  <p>tom.marketing@company.com / marketing123</p>
+                  <p>emma.marketing@company.com / marketing456</p>
+                </div>
+              </div>
             </div>
           </div>
         </CardContent>

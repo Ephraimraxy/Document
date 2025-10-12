@@ -1,26 +1,37 @@
-// Main dashboard component
+// Department-specific dashboard component
 import React, { useState } from 'react';
 import { useUser } from '../../contexts/UserContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
-import { Bell, FileText, Users, CheckCircle, XCircle, Clock, Workflow, Settings, BarChart3, Plus, Building2, Users2, DollarSign, Megaphone } from 'lucide-react';
+import { Bell, FileText, Users, CheckCircle, XCircle, Clock, Workflow, Settings, BarChart3, Plus, Building2 } from 'lucide-react';
 import { Link, useLocation } from 'wouter';
 import { DocumentCreator } from '../documents/DocumentCreator';
-import { DepartmentDashboard } from './DepartmentDashboard';
 
-export const Dashboard: React.FC = () => {
+interface DepartmentDashboardProps {
+  departmentName: string;
+  departmentColor: string;
+  departmentIcon: React.ReactNode;
+}
+
+export const DepartmentDashboard: React.FC<DepartmentDashboardProps> = ({ 
+  departmentName, 
+  departmentColor, 
+  departmentIcon 
+}) => {
   const { user, documents, notifications, createDocument, logout } = useUser();
   const [showDocumentCreator, setShowDocumentCreator] = useState(false);
   const [, setLocation] = useLocation();
 
   if (!user) return null;
 
-  const pendingDocuments = documents.filter(doc => 
+  // Filter documents for this department
+  const departmentDocuments = documents.filter(doc => doc.department === departmentName);
+  const pendingDocuments = departmentDocuments.filter(doc => 
     doc.workflow.assignedTo.includes(user.id) && doc.status === 'review'
   );
   
-  const myDocuments = documents.filter(doc => doc.createdBy === user.id);
+  const myDocuments = departmentDocuments.filter(doc => doc.createdBy === user.id);
   
   const unreadNotifications = notifications.filter(notif => !notif.read);
 
@@ -45,43 +56,6 @@ export const Dashboard: React.FC = () => {
 
   const handleDocumentCreated = (document: any) => {
     // Document creator will handle navigation directly
-    // No need to close the creator here as it navigates away
-  };
-
-  // Get department-specific dashboard configuration
-  const getDepartmentConfig = (department: string) => {
-    switch (department) {
-      case 'Administration':
-        return {
-          name: 'Administration',
-          color: 'bg-gray-100 text-gray-800',
-          icon: <Building2 className="h-6 w-6" />
-        };
-      case 'Human Resources':
-        return {
-          name: 'Human Resources',
-          color: 'bg-blue-100 text-blue-800',
-          icon: <Users2 className="h-6 w-6" />
-        };
-      case 'Finance':
-        return {
-          name: 'Finance',
-          color: 'bg-green-100 text-green-800',
-          icon: <DollarSign className="h-6 w-6" />
-        };
-      case 'Marketing':
-        return {
-          name: 'Marketing',
-          color: 'bg-purple-100 text-purple-800',
-          icon: <Megaphone className="h-6 w-6" />
-        };
-      default:
-        return {
-          name: 'General',
-          color: 'bg-gray-100 text-gray-800',
-          icon: <Building2 className="h-6 w-6" />
-        };
-    }
   };
 
   if (showDocumentCreator) {
@@ -99,34 +73,27 @@ export const Dashboard: React.FC = () => {
     );
   }
 
-  // Use department-specific dashboard for non-admin users
-  if (user && user.role !== 'admin') {
-    const deptConfig = getDepartmentConfig(user.department);
-    return (
-      <DepartmentDashboard 
-        departmentName={deptConfig.name}
-        departmentColor={deptConfig.color}
-        departmentIcon={deptConfig.icon}
-      />
-    );
-  }
-
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <header className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">DocuEdit</h1>
-              <p className="text-sm text-gray-600">
-                Welcome back, {user.name} ({user.department})
-                {user.role === 'admin' && (
-                  <span className="ml-2 inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                    🔐 ADMIN
-                  </span>
-                )}
-              </p>
+            <div className="flex items-center space-x-3">
+              <div className={`p-2 rounded-lg ${departmentColor}`}>
+                {departmentIcon}
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900">{departmentName} Dashboard</h1>
+                <p className="text-sm text-gray-600">
+                  Welcome back, {user.name} ({user.department})
+                  {user.role === 'admin' && (
+                    <span className="ml-2 inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                      🔐 ADMIN
+                    </span>
+                  )}
+                </p>
+              </div>
             </div>
             <div className="flex items-center space-x-4">
               <Button onClick={() => setShowDocumentCreator(true)} size="sm" className="bg-blue-600 hover:bg-blue-700 text-white">
@@ -176,6 +143,35 @@ export const Dashboard: React.FC = () => {
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {/* Department Stats */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <Building2 className="h-5 w-5 mr-2 text-blue-600" />
+                Department Stats
+              </CardTitle>
+              <CardDescription>
+                {departmentName} overview
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                <div className="flex justify-between">
+                  <span className="text-sm text-gray-600">Total Documents:</span>
+                  <span className="font-medium">{departmentDocuments.length}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm text-gray-600">Pending Reviews:</span>
+                  <span className="font-medium">{pendingDocuments.length}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm text-gray-600">My Documents:</span>
+                  <span className="font-medium">{myDocuments.length}</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Pending Actions */}
           <Card>
             <CardHeader>
@@ -244,41 +240,12 @@ export const Dashboard: React.FC = () => {
               </div>
             </CardContent>
           </Card>
-
-          {/* Quick Actions */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <Users className="h-5 w-5 mr-2 text-green-600" />
-                Quick Actions
-              </CardTitle>
-              <CardDescription>
-                Common tasks and shortcuts
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                <Button className="w-full justify-start" variant="outline">
-                  <FileText className="h-4 w-4 mr-2" />
-                  Create New Document
-                </Button>
-                <Button className="w-full justify-start" variant="outline">
-                  <Users className="h-4 w-4 mr-2" />
-                  View All Documents
-                </Button>
-                <Button className="w-full justify-start" variant="outline">
-                  <CheckCircle className="h-4 w-4 mr-2" />
-                  Pending Approvals
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
         </div>
 
         {/* Recent Activity */}
         <Card className="mt-8">
           <CardHeader>
-            <CardTitle>Recent Activity</CardTitle>
+            <CardTitle>{departmentName} Recent Activity</CardTitle>
             <CardDescription>
               Latest document activities and updates
             </CardDescription>

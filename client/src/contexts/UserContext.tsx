@@ -121,6 +121,42 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
         role: 'reviewer',
         createdAt: new Date(),
         lastActive: new Date()
+      },
+      {
+        id: '5',
+        name: 'David Finance',
+        email: 'david.finance@company.com',
+        department: 'Finance',
+        role: 'approver',
+        createdAt: new Date(),
+        lastActive: new Date()
+      },
+      {
+        id: '6',
+        name: 'Lisa Finance',
+        email: 'lisa.finance@company.com',
+        department: 'Finance',
+        role: 'reviewer',
+        createdAt: new Date(),
+        lastActive: new Date()
+      },
+      {
+        id: '7',
+        name: 'Tom Marketing',
+        email: 'tom.marketing@company.com',
+        department: 'Marketing',
+        role: 'creator',
+        createdAt: new Date(),
+        lastActive: new Date()
+      },
+      {
+        id: '8',
+        name: 'Emma Marketing',
+        email: 'emma.marketing@company.com',
+        department: 'Marketing',
+        role: 'reviewer',
+        createdAt: new Date(),
+        lastActive: new Date()
       }
     ];
 
@@ -168,6 +204,84 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
           email: 'jane.manager@company.com',
           department: 'Administration',
           role: 'approver' as const,
+          createdAt: new Date(),
+          lastActive: new Date()
+        }
+      },
+      { 
+        email: 'mike.hr@company.com', 
+        password: 'hr123', 
+        user: {
+          id: '3',
+          name: 'Mike HR',
+          email: 'mike.hr@company.com',
+          department: 'Human Resources',
+          role: 'approver' as const,
+          createdAt: new Date(),
+          lastActive: new Date()
+        }
+      },
+      { 
+        email: 'sarah.hr@company.com', 
+        password: 'hr456', 
+        user: {
+          id: '4',
+          name: 'Sarah HR',
+          email: 'sarah.hr@company.com',
+          department: 'Human Resources',
+          role: 'reviewer' as const,
+          createdAt: new Date(),
+          lastActive: new Date()
+        }
+      },
+      { 
+        email: 'david.finance@company.com', 
+        password: 'finance123', 
+        user: {
+          id: '5',
+          name: 'David Finance',
+          email: 'david.finance@company.com',
+          department: 'Finance',
+          role: 'approver' as const,
+          createdAt: new Date(),
+          lastActive: new Date()
+        }
+      },
+      { 
+        email: 'lisa.finance@company.com', 
+        password: 'finance456', 
+        user: {
+          id: '6',
+          name: 'Lisa Finance',
+          email: 'lisa.finance@company.com',
+          department: 'Finance',
+          role: 'reviewer' as const,
+          createdAt: new Date(),
+          lastActive: new Date()
+        }
+      },
+      { 
+        email: 'tom.marketing@company.com', 
+        password: 'marketing123', 
+        user: {
+          id: '7',
+          name: 'Tom Marketing',
+          email: 'tom.marketing@company.com',
+          department: 'Marketing',
+          role: 'creator' as const,
+          createdAt: new Date(),
+          lastActive: new Date()
+        }
+      },
+      { 
+        email: 'emma.marketing@company.com', 
+        password: 'marketing456', 
+        user: {
+          id: '8',
+          name: 'Emma Marketing',
+          email: 'emma.marketing@company.com',
+          department: 'Marketing',
+          role: 'reviewer' as const,
           createdAt: new Date(),
           lastActive: new Date()
         }
