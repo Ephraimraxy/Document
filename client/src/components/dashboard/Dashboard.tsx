@@ -5,12 +5,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
 import { Bell, FileText, Users, CheckCircle, XCircle, Clock, Workflow, Settings, BarChart3, Plus } from 'lucide-react';
-import { Link } from 'wouter';
+import { Link, useLocation } from 'wouter';
 import { DocumentCreator } from '../documents/DocumentCreator';
 
 export const Dashboard: React.FC = () => {
   const { user, documents, notifications, createDocument, logout } = useUser();
   const [showDocumentCreator, setShowDocumentCreator] = useState(false);
+  const [, setLocation] = useLocation();
 
   if (!user) return null;
 
@@ -42,8 +43,8 @@ export const Dashboard: React.FC = () => {
   };
 
   const handleDocumentCreated = (document: any) => {
-    setShowDocumentCreator(false);
-    // Document is automatically added to the list via context
+    // Document creator will handle navigation directly
+    // No need to close the creator here as it navigates away
   };
 
   if (showDocumentCreator) {

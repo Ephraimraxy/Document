@@ -7,6 +7,7 @@ import { Label } from '../ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { FileText, Table, Presentation } from 'lucide-react';
+import { useLocation } from 'wouter';
 
 interface DocumentCreatorProps {
   onDocumentCreated: (document: any) => void;
@@ -17,6 +18,7 @@ export const DocumentCreator: React.FC<DocumentCreatorProps> = ({ onDocumentCrea
   const [type, setType] = useState<'docx' | 'xlsx' | 'pptx'>('docx');
   const [loading, setLoading] = useState(false);
   const { createDocument, departments } = useUser();
+  const [, setLocation] = useLocation();
 
   const handleCreate = async () => {
     if (!title.trim()) return;
@@ -25,12 +27,10 @@ export const DocumentCreator: React.FC<DocumentCreatorProps> = ({ onDocumentCrea
     try {
       const document = await createDocument(title, type);
       
-      // Open OnlyOffice editor for the new document
-      const editorUrl = `/legacy?type=${type}&title=${encodeURIComponent(title)}`;
-      window.open(editorUrl, '_blank');
+      // Navigate directly to OnlyOffice editor in the same tab
+      setLocation(`/legacy?type=${type}&title=${encodeURIComponent(title)}`);
       
       onDocumentCreated(document);
-      setTitle('');
     } catch (error) {
       console.error('Failed to create document:', error);
     } finally {
