@@ -4,7 +4,7 @@ import { useUser } from '../contexts/UserContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
-import { Bell, FileText, Users, CheckCircle, XCircle, Clock, Workflow, Settings } from 'lucide-react';
+import { Bell, FileText, Users, CheckCircle, XCircle, Clock, Workflow, Settings, BarChart3 } from 'lucide-react';
 import { Link } from 'wouter';
 
 export const Dashboard: React.FC = () => {
@@ -56,6 +56,12 @@ export const Dashboard: React.FC = () => {
                 <Button variant="outline" size="sm">
                   <Workflow className="h-4 w-4 mr-2" />
                   Workflows
+                </Button>
+              </Link>
+              <Link href="/analytics">
+                <Button variant="outline" size="sm">
+                  <BarChart3 className="h-4 w-4 mr-2" />
+                  Analytics
                 </Button>
               </Link>
               <div className="relative">
