@@ -126,8 +126,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
 
     setDepartments(sampleDepartments);
     
-    // Auto-login for development (remove in production)
-    setUser(sampleUsers[0]);
+    // No auto-login - users must authenticate
   }, []);
 
   const login = async (email: string, password: string): Promise<boolean> => {

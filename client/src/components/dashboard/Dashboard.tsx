@@ -1,14 +1,16 @@
 // Main dashboard component
-import React from 'react';
+import React, { useState } from 'react';
 import { useUser } from '../../contexts/UserContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
-import { Bell, FileText, Users, CheckCircle, XCircle, Clock, Workflow, Settings, BarChart3 } from 'lucide-react';
+import { Bell, FileText, Users, CheckCircle, XCircle, Clock, Workflow, Settings, BarChart3, Plus } from 'lucide-react';
 import { Link } from 'wouter';
+import { DocumentCreator } from '../documents/DocumentCreator';
 
 export const Dashboard: React.FC = () => {
-  const { user, documents, notifications } = useUser();
+  const { user, documents, notifications, createDocument, logout } = useUser();
+  const [showDocumentCreator, setShowDocumentCreator] = useState(false);
 
   if (!user) return null;
 
@@ -39,6 +41,26 @@ export const Dashboard: React.FC = () => {
     }
   };
 
+  const handleDocumentCreated = (document: any) => {
+    setShowDocumentCreator(false);
+    // Document is automatically added to the list via context
+  };
+
+  if (showDocumentCreator) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <div className="w-full max-w-2xl">
+          <DocumentCreator onDocumentCreated={handleDocumentCreated} />
+          <div className="mt-4 text-center">
+            <Button variant="outline" onClick={() => setShowDocumentCreator(false)}>
+              Cancel
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -57,6 +79,10 @@ export const Dashboard: React.FC = () => {
               </p>
             </div>
             <div className="flex items-center space-x-4">
+              <Button onClick={() => setShowDocumentCreator(true)} size="sm" className="bg-blue-600 hover:bg-blue-700 text-white">
+                <Plus className="h-4 w-4 mr-2" />
+                Create Document
+              </Button>
               <Link href="/workflow">
                 <Button variant="outline" size="sm">
                   <Workflow className="h-4 w-4 mr-2" />
@@ -87,9 +113,9 @@ export const Dashboard: React.FC = () => {
                     Admin Panel
                   </Button>
                 )}
-                <Button variant="outline" size="sm">
+                <Button variant="outline" size="sm" onClick={logout}>
                   <Settings className="h-4 w-4 mr-2" />
-                  {user.name}
+                  Logout
                 </Button>
               </div>
             </div>

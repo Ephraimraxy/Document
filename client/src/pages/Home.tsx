@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useMutation } from "@tanstack/react-query";
 import DocumentTypeSelector from "@/components/DocumentTypeSelector";
 import OnlyOfficeEditor from "@/components/OnlyOfficeEditor";
@@ -11,9 +11,23 @@ export default function Home() {
   const [editorConfig, setEditorConfig] = useState<any>(null);
   const { toast } = useToast();
 
+  // Check for URL parameters to auto-create document
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const type = urlParams.get('type') as 'docx' | 'xlsx' | 'pptx' | null;
+    const title = urlParams.get('title');
+    
+    if (type && title) {
+      createDocMutation.mutate(type, { title });
+    }
+  }, []);
+
   const createDocMutation = useMutation({
-    mutationFn: async (documentType: "docx" | "xlsx" | "pptx") => {
-      const response = await apiRequest("POST", "/api/doc-config", { documentType });
+    mutationFn: async (documentType: "docx" | "xlsx" | "pptx", options?: { title?: string }) => {
+      const response = await apiRequest("POST", "/api/doc-config", { 
+        documentType, 
+        title: options?.title || "Untitled Document" 
+      });
       return await response.json();
     },
     onSuccess: (data) => {

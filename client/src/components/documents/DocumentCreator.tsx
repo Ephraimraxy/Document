@@ -24,6 +24,11 @@ export const DocumentCreator: React.FC<DocumentCreatorProps> = ({ onDocumentCrea
     setLoading(true);
     try {
       const document = await createDocument(title, type);
+      
+      // Open OnlyOffice editor for the new document
+      const editorUrl = `/legacy?type=${type}&title=${encodeURIComponent(title)}`;
+      window.open(editorUrl, '_blank');
+      
       onDocumentCreated(document);
       setTitle('');
     } catch (error) {
