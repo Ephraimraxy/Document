@@ -34,7 +34,15 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
       
       // Get the site URL from the event
       const siteUrl = `https://${event.headers.host}`;
-      const documentUrl = `${siteUrl}/templates/blank.${fileType}`;
+      
+      // Use publicly available sample files that OnlyOffice can access
+      const publicTemplateUrls = {
+        'docx': 'https://www.learningcontainer.com/wp-content/uploads/2019/09/sample-doc-file.docx',
+        'xlsx': 'https://www.learningcontainer.com/wp-content/uploads/2019/09/sample-xlsx-file.xlsx',
+        'pptx': 'https://www.learningcontainer.com/wp-content/uploads/2019/09/sample-pptx-file.pptx'
+      };
+      
+      const documentUrl = publicTemplateUrls[fileType as keyof typeof publicTemplateUrls] || `${siteUrl}/templates/blank.${fileType}`;
       
       const docConfig = {
         document: {
