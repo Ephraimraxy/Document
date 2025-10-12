@@ -4,7 +4,8 @@ import { useUser } from '../contexts/UserContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
-import { Bell, FileText, Users, CheckCircle, XCircle, Clock } from 'lucide-react';
+import { Bell, FileText, Users, CheckCircle, XCircle, Clock, Workflow, Settings } from 'lucide-react';
+import { Link } from 'wouter';
 
 export const Dashboard: React.FC = () => {
   const { user, documents, notifications } = useUser();
@@ -51,6 +52,12 @@ export const Dashboard: React.FC = () => {
               </p>
             </div>
             <div className="flex items-center space-x-4">
+              <Link href="/workflow">
+                <Button variant="outline" size="sm">
+                  <Workflow className="h-4 w-4 mr-2" />
+                  Workflows
+                </Button>
+              </Link>
               <div className="relative">
                 <Button variant="outline" size="sm">
                   <Bell className="h-4 w-4 mr-2" />
@@ -63,6 +70,7 @@ export const Dashboard: React.FC = () => {
                 </Button>
               </div>
               <Button variant="outline" size="sm">
+                <Settings className="h-4 w-4 mr-2" />
                 {user.name}
               </Button>
             </div>
