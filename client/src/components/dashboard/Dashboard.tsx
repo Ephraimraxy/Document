@@ -1,9 +1,9 @@
 // Main dashboard component
 import React from 'react';
-import { useUser } from '../contexts/UserContext';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
-import { Button } from '../components/ui/button';
-import { Badge } from '../components/ui/badge';
+import { useUser } from '../../contexts/UserContext';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
+import { Button } from '../ui/button';
+import { Badge } from '../ui/badge';
 import { Bell, FileText, Users, CheckCircle, XCircle, Clock, Workflow, Settings, BarChart3 } from 'lucide-react';
 import { Link } from 'wouter';
 

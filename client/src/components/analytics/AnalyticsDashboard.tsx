@@ -1,6 +1,6 @@
 // Comprehensive analytics dashboard
 import React, { useState } from 'react';
-import { useAnalytics } from '../contexts/AnalyticsContext';
+import { useAnalytics } from '../../contexts/AnalyticsContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';

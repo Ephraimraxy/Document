@@ -1,7 +1,7 @@
 // Workflow management dashboard
 import React, { useState } from 'react';
-import { useWorkflow } from '../contexts/WorkflowContext';
-import { useUser } from '../contexts/UserContext';
+import { useWorkflow } from '../../contexts/WorkflowContext';
+import { useUser } from '../../contexts/UserContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';

@@ -1,6 +1,6 @@
 // Digital signature component
 import React, { useState, useRef } from 'react';
-import { useWorkflow } from '../contexts/WorkflowContext';
+import { useWorkflow } from '../../contexts/WorkflowContext';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { Badge } from '../ui/badge';

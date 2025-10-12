@@ -1,11 +1,11 @@
 // Login component
 import React, { useState } from 'react';
-import { useUser } from '../contexts/UserContext';
-import { Button } from '../components/ui/button';
-import { Input } from '../components/ui/input';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
-import { Label } from '../components/ui/label';
-import { Alert, AlertDescription } from '../components/ui/alert';
+import { useUser } from '../../contexts/UserContext';
+import { Button } from '../ui/button';
+import { Input } from '../ui/input';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
+import { Label } from '../ui/label';
+import { Alert, AlertDescription } from '../ui/alert';
 
 export const LoginForm: React.FC = () => {
   const [email, setEmail] = useState('');
