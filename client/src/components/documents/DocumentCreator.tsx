@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { FileText, Table, Presentation } from 'lucide-react';
 import { useLocation } from 'wouter';
+import { useToast } from '../../hooks/use-toast';
 
 interface DocumentCreatorProps {
   onDocumentCreated: (document: any) => void;
@@ -19,6 +20,7 @@ export const DocumentCreator: React.FC<DocumentCreatorProps> = ({ onDocumentCrea
   const [loading, setLoading] = useState(false);
   const { createDocument, departments } = useUser();
   const [, setLocation] = useLocation();
+  const { toast } = useToast();
 
   const handleCreate = async () => {
     if (!title.trim()) return;
@@ -27,12 +29,22 @@ export const DocumentCreator: React.FC<DocumentCreatorProps> = ({ onDocumentCrea
     try {
       const document = await createDocument(title, type);
       
-      // Navigate directly to OnlyOffice editor in the same tab
-      setLocation(`/legacy?type=${type}&title=${encodeURIComponent(title)}`);
+      // Open OnlyOffice editor in new tab to keep dashboard accessible
+      window.open(`/legacy?type=${type}&title=${encodeURIComponent(title)}`, '_blank');
+      
+      toast({
+        title: "Document Created",
+        description: `${title} has been created successfully and opened in a new tab.`,
+      });
       
       onDocumentCreated(document);
     } catch (error) {
       console.error('Failed to create document:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create document. Please try again.",
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }

@@ -7,9 +7,10 @@ import { UserProvider, useUser } from "./contexts/UserContext";
 import { WorkflowProvider } from "./contexts/WorkflowContext";
 import { AnalyticsProvider } from "./contexts/AnalyticsContext";
 import { LoginForm } from "./components/auth/LoginForm";
-import { Dashboard } from "./components/dashboard/Dashboard";
-import { WorkflowManagement } from "./components/workflow/WorkflowManagement";
-import { AnalyticsDashboard } from "./components/analytics/AnalyticsDashboard";
+import DashboardPage from "@/pages/Dashboard";
+import Documents from "@/pages/Documents";
+import WorkflowPage from "@/pages/Workflow";
+import AnalyticsPage from "@/pages/Analytics";
 import Home from "@/pages/Home";
 import NotFound from "@/pages/not-found";
 
@@ -18,9 +19,10 @@ function Router() {
 
   return (
     <Switch>
-      <Route path="/" component={user ? Dashboard : LoginForm} />
-      <Route path="/workflow" component={user ? WorkflowManagement : LoginForm} />
-      <Route path="/analytics" component={user ? AnalyticsDashboard : LoginForm} />
+      <Route path="/" component={user ? DashboardPage : LoginForm} />
+      <Route path="/documents" component={user ? Documents : LoginForm} />
+      <Route path="/workflow" component={user ? WorkflowPage : LoginForm} />
+      <Route path="/analytics" component={user ? AnalyticsPage : LoginForm} />
       <Route path="/legacy" component={Home} />
       <Route component={NotFound} />
     </Switch>
